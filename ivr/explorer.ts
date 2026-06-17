@@ -9,6 +9,7 @@ import {
   createEmptyTree,
 } from "./build-tree-from-analysis.js";
 import { aggregateMenuAttempts } from "./confidence.js";
+import { isBackpropEdge, markBackpropEdge } from "./backprop.js";
 import { createFrontier } from "./frontier.js";
 import { menuSignature } from "./menu-signature.js";
 import {
@@ -69,6 +70,7 @@ export interface ExploreStats {
   loopGuarded: number;
   unknownSkipped: number;
   sameAsParentSkipped: number;
+  backpropSkipped: number;
   speakingSkipped: number;
   failures: number;
   skippedAtDepth: number;
@@ -181,6 +183,7 @@ export async function exploreIvrTree(
     loopGuarded: 0,
     unknownSkipped: 0,
     sameAsParentSkipped: 0,
+    backpropSkipped: 0,
     speakingSkipped: 0,
     failures: 0,
     skippedAtDepth: 0,
@@ -349,6 +352,17 @@ export async function exploreIvrTree(
         stats.sameAsParentSkipped += 1;
         console.log(
           `[explore] ${label} option ${edge.key} ("${edge.label}") matches parent label — recording but not exploring`,
+        );
+        continue;
+      }
+
+      // Guard against options that match a sibling at the parent menu — they
+      // back-navigate to an uncle branch, not a new subtree.
+      if (isBackpropEdge(tree, pathway, edge)) {
+        markBackpropEdge(tree, pathway, edge);
+        stats.backpropSkipped += 1;
+        console.log(
+          `[explore] ${label} option ${edge.key} ("${edge.label}") matches a sibling at parent — backprop edge, not exploring`,
         );
         continue;
       }

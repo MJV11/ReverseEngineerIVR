@@ -37,6 +37,8 @@ export interface IvrEdge {
   targetPathway: Pathway;
   /** True when navigating back along this edge ends exploration (spec: reverse edge = tree end). */
   isReverse?: boolean;
+  /** True when this option matches a sibling at the parent menu (a back-navigation shortcut). */
+  isBackprop?: boolean;
 }
 
 /** A node in the IVR tree: pathway number + title, with outgoing edges. */
@@ -72,6 +74,11 @@ export interface IvrNode {
    * a repeated/self-referential option. Recorded but never explored.
    */
   sameAsParent?: boolean;
+  /**
+   * True when this node is reached by an option whose label matches a sibling
+   * option at the parent menu. Recorded as a backprop edge but never explored.
+   */
+  backpropEdge?: boolean;
   /**
    * True when this node is reached by a spoken option (e.g. say "agent"), not a
    * DTMF key press. Recorded as a leaf but never explored.

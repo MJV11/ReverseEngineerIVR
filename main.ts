@@ -1,12 +1,14 @@
 import "dotenv/config";
-import { callCalfresh } from "./scripts/call-calfresh.js";
 import { exploreScript } from "./scripts/explore.js";
 import { getCallScript } from "./scripts/get-call.js";
+import { importTxtOutputScript } from "./scripts/import-txt-output.js";
+import { writeDemoJsonScript } from "./scripts/write-demo-json.js";
 
 const scripts: Record<string, (args: string[]) => Promise<unknown>> = {
   explore: exploreScript,
-  "call-calfresh": () => callCalfresh(),
   "get-call": getCallScript,
+  "write-demo-json": () => writeDemoJsonScript(),
+  "import-txt-output": importTxtOutputScript,
 };
 
 async function main() {

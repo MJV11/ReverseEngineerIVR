@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "start": "tsx main.ts",
-    "typecheck": "tsc --noEmit"
+    "test": "tsx --test ivr/**/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "visualize": "npm run dev --prefix visualizer",
+    "visualize:install": "npm install --prefix visualizer"
   },
   "dependencies": {
     "dotenv": "^16.5.0"

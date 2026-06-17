@@ -3,6 +3,7 @@ export type {
   IvrNode,
   IvrNodeCall,
   IvrTree,
+  OptionConfidence,
   Pathway,
 } from "./tree-types.js";
 export { getNode, getRootNode } from "./tree-types.js";
@@ -33,6 +34,9 @@ export { createFrontier } from "./frontier.js";
 export type { ExplorationFrontier } from "./frontier.js";
 
 export { menuSignature } from "./menu-signature.js";
+
+export { aggregateMenuAttempts } from "./confidence.js";
+export type { AggregatedMenu } from "./confidence.js";
 
 export { buildNavigationTask } from "./navigation-task.js";
 export type { NavigationTaskOptions } from "./navigation-task.js";

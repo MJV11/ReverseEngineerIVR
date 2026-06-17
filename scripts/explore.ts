@@ -9,8 +9,9 @@ const DEFAULT_NUMBER = "+18009359935";
  * every `launchIntervalSec` seconds. Exploration stops only at natural
  * boundaries (terminal menus, detected loops, exhausted frontier).
  *
- * Usage: npm start explore [phoneNumber] [launchIntervalSec] [maxDepth] [maxPathways]
+ * Usage: npm start explore [phoneNumber] [attempts] [launchIntervalSec] [maxDepth] [maxPathways]
  *   - phoneNumber: number to dial (default demo number)
+ *   - attempts: times to re-explore each branch for confidence (default 3)
  *   - launchIntervalSec: seconds between firing off new workers (default 11)
  *   - maxDepth / maxPathways: OPTIONAL safety guardrails; omit for full traversal
  */
@@ -31,13 +32,15 @@ function parseNumberArg(arg: string | undefined): number | undefined {
 
 export async function exploreScript(args: string[]): Promise<void> {
   const phoneNumber = parsePhoneArg(args[0]);
-  const launchIntervalSec = parseNumberArg(args[1]);
+  const attempts = parseNumberArg(args[1]);
+  const launchIntervalSec = parseNumberArg(args[2]);
   const launchIntervalMs = (launchIntervalSec ?? 11) * 1000;
-  const maxDepth = parseNumberArg(args[2]);
-  const maxPathways = parseNumberArg(args[3]);
+  const maxDepth = parseNumberArg(args[3]);
+  const maxPathways = parseNumberArg(args[4]);
 
   console.log(
     `Exploring IVR at ${phoneNumber} (full depth + breadth, unbounded concurrency, ` +
+      `${attempts ?? 3} attempts per branch, ` +
       `launching a worker every ${launchIntervalMs / 1000}s` +
       `${maxDepth !== undefined ? `, maxDepth=${maxDepth}` : ""}` +
       `${maxPathways !== undefined ? `, maxPathways=${maxPathways}` : ""})...`,
@@ -46,6 +49,7 @@ export async function exploreScript(args: string[]): Promise<void> {
   const { tree, stats } = await exploreIvrTree({
     phoneNumber,
     targetDescription: `the IVR at ${phoneNumber}`,
+    attempts,
     launchIntervalMs,
     maxDepth,
     maxPathways,
@@ -61,10 +65,13 @@ export async function exploreScript(args: string[]): Promise<void> {
   console.log(`Looping options:   ${stats.loopGuarded}`);
   console.log(`Unknown options:   ${stats.unknownSkipped}`);
   console.log(`Same-as-parent:    ${stats.sameAsParentSkipped}`);
+  console.log(`Backprop edges:    ${stats.backpropSkipped}`);
   console.log(`Spoken options:    ${stats.speakingSkipped}`);
   console.log(`Failures:          ${stats.failures}`);
   console.log(`Skipped (depth):   ${stats.skippedAtDepth}`);
 
   const outputPath = await writeTreeOutput(tree, stats);
+  const jsonPath = outputPath.replace(/\.txt$/, ".json");
   console.log(`\nSaved tree to ${outputPath}`);
+  console.log(`Saved JSON to ${jsonPath}`);
 }

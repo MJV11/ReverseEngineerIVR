@@ -17,6 +17,12 @@ across many concurrent calls and merges what it learns into a single tree.
    throttled to one new worker every ~11s (due to rate limits on calling the same number within 10 seconds).
 4. **Model + persist** — each menu is a node in the tree; loops are detected via
    menu signatures. The final tree is printed and saved to `outputs/`.
+5. **Confidence** — every branch is explored several times (default 3). The
+   canonical menu is the most common result; each option's confidence is the
+   fraction of attempts it appeared in (case-insensitive), and a node's overall
+   confidence is the mean of its options' confidences. Stored per node as
+   `optionConfidences` + `confidence`, and shown in the output (`(p=…)` per
+   option, `[conf …]` per node).
 
 ### Guards (recorded but not explored)
 
@@ -54,10 +60,11 @@ npm start <script> [args...]
 ### Explore an IVR end-to-end (main use case)
 
 ```bash
-npm start explore [phoneNumber] [launchIntervalSec] [maxDepth] [maxPathways]
+npm start explore [phoneNumber] [attempts] [launchIntervalSec] [maxDepth] [maxPathways]
 ```
 
 - `phoneNumber` — number to dial (default: `+18009359935`)
+- `attempts` — times to re-explore each branch for confidence (default: `3`)
 - `launchIntervalSec` — seconds between launching new workers (default: `11`)
 - `maxDepth` / `maxPathways` — **optional** safety guardrails; omit for a full
   depth + breadth traversal
@@ -65,9 +72,9 @@ npm start explore [phoneNumber] [launchIntervalSec] [maxDepth] [maxPathways]
 Examples:
 
 ```bash
-npm start explore                 # explore the default demo number
-npm start explore +18778473663    # explore a specific number
-npm start explore +18778473663 11 # 11s between worker launches
+npm start explore                   # default number, 3 attempts per branch
+npm start explore +18778473663      # explore a specific number
+npm start explore +18778473663 5    # 5 attempts per branch for higher confidence
 ```
 
 ### Other scripts
@@ -89,10 +96,27 @@ After a run, the tree is printed to the console and written to:
 
 ```
 outputs/<timestamp>_<phoneNumber>.txt
+outputs/<timestamp>_<phoneNumber>.json
 ```
 
-Each file contains the rendered tree (root = the dialed number, leaves =
+The `.txt` file is a human-readable tree (root = the dialed number, leaves =
 `key: label`, annotated with status markers) followed by exploration stats.
+The `.json` file is the structured snapshot used by the visualizer.
+
+## Visualizer
+
+A small React app renders each JSON output as an interactive graph. Click a
+node to inspect its prompt, options, source transcript, and confidence. All
+edge types are shown — tree edges, backprop shortcuts, loop links, and reverse
+edges — with distinct styling.
+
+```bash
+npm run visualize:install   # first time only
+npm start write-demo-json     # optional demo JSON if you have no explore run yet
+npm run visualize
+```
+
+Then open http://localhost:5173 and pick an output from the dropdown.
 
 ## Project layout
 
