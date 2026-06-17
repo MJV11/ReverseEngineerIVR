@@ -1,0 +1,10 @@
+curl --request POST \
+  --url https://us.api.bland.ai/v1/calls \
+  --header 'Authorization: <authorization>' \
+  --header 'Content-Type: application/json' \
+  --data '
+{
+  "phone_number": "<string>",
+  "task": "<string>"
+}
+'
